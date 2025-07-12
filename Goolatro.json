@@ -1,0 +1,23 @@
+{
+	"id": "Goolatro",
+	"name": "Goolatro",
+	"display_name": "Goolatro",
+	"author": [
+		"Kastle"
+	],
+	"description": "Official playing cards released by Thunder Science Company",
+	"prefix": "goolatro",
+	"main_file": "core.lua",
+	"priority": 0,
+	"badge_colour": "2dbccf",
+	"badge_text_colour": "FFFFFF",
+	"version": "0.1",
+	"dependencies": [
+		"Lovely (>=0.7)",
+		"Balatro (>=1.0.1o)"
+	],
+	"conflicts": [
+	"Talisman (<=2.0.2)",
+	"Cryptid (<<0.5.4)"
+	]
+}
