@@ -4,7 +4,9 @@ and unique mechanics.
 
 # Currently featuring:
 4 - Vanilla-style jokers
+
 1 - Unique mechanic
+
 1 - Joke joker
 
 
