@@ -9,6 +9,7 @@ and unique mechanics.
 
 1 - Joke joker
 
+# RECOMMENDED LANGUAGE - RUSSIAN
 
 # Requirements
 SMODS - https://github.com/Steamodded/smods
