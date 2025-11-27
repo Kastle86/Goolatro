@@ -4,6 +4,12 @@
 - Adds 1 Boss blind
 - Adds 1 seal
 
+## How to install:
+1. Install required modding tools (See Requirements)
+
+2. Copy repository files to Appdata/Roaming/Balatro/Mods(Create one if not existing)/Goolatro
+
+
 ## Requirements:
 Smods: https://github.com/Steamodded/smods
 
