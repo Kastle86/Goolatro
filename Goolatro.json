@@ -5,13 +5,13 @@
 	"author": [
 		"Kastle"
 	],
-	"description": "Official playing cards released by Thunder Science Company",
+	"description": "Official playing cards released by Thunder Science Company. Adds bunch of new jokers, seals and blinds",
 	"prefix": "goolatro",
 	"main_file": "core.lua",
 	"priority": 0,
 	"badge_colour": "2dbccf",
 	"badge_text_colour": "FFFFFF",
-	"version": "0.1",
+	"version": "1.1",
 	"dependencies": [
 		"Lovely (>=0.7)",
 		"Balatro (>=1.0.1o)"

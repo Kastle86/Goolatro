@@ -1,4 +1,4 @@
-
+-- Этот файл регистрирует всех джокеров из Goolatro с рабочей логикой
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -14,15 +14,14 @@ function deepcopy(orig)
     return copy
 end
 
-
-
+-- Puro
 SMODS.Joker{
     key = 'puro',
     loc_txt = {
         name = "Puro",
         text = {
             "{X:mult,C:white}+3{} Mult per {C:hearts}Heart{} in scoring hand",
-            '{C:inactive}"Он просто желает помочь"'
+            '{C:inactive}"He just wants to help"'
         }
     },
     atlas = 'puro',
@@ -53,7 +52,7 @@ SMODS.Joker{
     end
 }
 
-
+-- Colin
 SMODS.Joker{
     key = 'colin',
     loc_txt = {
@@ -61,7 +60,7 @@ SMODS.Joker{
         text = {
             "{X:mult,C:white}X#1#{} Mult increases by {C:green}+1{}",
             "each time you beat a blind",
-            '{C:inactive}"Вспомни кто ты есть"'
+            '{C:inactive}"Remember who you are"'
         }
     },
     atlas = 'colin',
@@ -108,7 +107,7 @@ SMODS.Joker{
             "{X:mult,C:white}X#1#{} and {C:blue}+#2# Chips{} if",
             "scoring hand has only even cards",
             "{C:red}-50 Chips{} if not",
-            '{C:inactive}"Результаты важнее всего"'
+            '{C:inactive}"Results first"'
         }
     },
     atlas = 'drk',
@@ -257,12 +256,12 @@ SMODS.Sound{ key = "goolatro_syava_fail", path = "syava_fail.ogg" }
 SMODS.Joker{
     key = 'syava',
     loc_txt = {
-        name = "Сява",
+        name = "Syava",
         text = {
-            "После каждой разыгранной руки:",
-            "{C:green}70%{} шанс: +10 {C:mult}Mult{} и +50 {C:chips}фишек{}",
-            "{C:red}30%{} шанс: множитель *0.01",
-            "{C:inactive}О да, {C:attention}джекпот!"
+            "After playing hand:",
+            "{C:green}70%{} chance: +10 {C:mult}Mult{} и +50 {C:chips}chips{}",
+            "{C:red}30%{} Chance for x0.01Mult",
+            "{C:inactive}JACKPOT, {C:attention}JACKPOT!"
         }
     },
     rarity = 2,
@@ -303,141 +302,697 @@ SMODS.Joker{
     end
 }
 
--- БОНДРЮД — РЕИНКАРНИРУЮЩИЙ ДЖОКЕР
+
+
+-- Luck the wolf
 SMODS.Atlas{
-    key = 'bondrewd',
-    path = 'goolatro_bondrewd.png',
+    key = 'luck',
+    path = 'goolatro_luck.png',
     px = 71,
     py = 96
 }
+
 SMODS.Joker{
-    key = 'bondrewd',
+    key = 'luck',
     loc_txt = {
-        name = "Bondrewd",
+        name = "Luck the Wolf",
         text = {
-            "Gain {X:mult,C:white}+0.25{} Mult per destruction",
-            "Gain {C:chips}+5{} Chips per discard",
-            "{C:attention}If sold{}, reincarnates into another Joker",
-            '"Glory to progress, children."',
-            "",
-            "{C:inactive}xMult: {X:mult,C:white}x#1#{}, Chips: {C:chips}+#2#{}"
+            "If hand contains {C:attention}3 or more{}",
+            "cards with {C:green}Lucky{} modifier:",
+            "{X:mult,C:white}X3{} Mult",
+            '{C:inactive}"Luck is on my side"'
         }
     },
-    rarity = 3,
-    cost = 10,
+    atlas = 'luck',
+    rarity = 2,
+    cost = 6,
     unlocked = true,
     discovered = true,
     blueprint_compat = true,
-    eternal_compat = false,
+    eternal_compat = true,
     perishable_compat = true,
-    pools = { Default = true },
-    atlas = 'bondrewd',
-    pos = {x = 0, y = 0},
-    config = {
-        extra = {
-            current_xmult = 1.5,
-            chip_bonus = 0
+    pools = { ["Default"] = true },
+    pos = { x = 0, y = 0 },
+    config = {},
+    
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local lucky_count = 0
+            
+            for _, c in ipairs(context.scoring_hand or {}) do
+                if c.ability.effect and c.ability.effect == 'Lucky Card' then
+                    lucky_count = lucky_count + 1
+                end
+            end
+            
+            if lucky_count >= 3 then
+                return {
+                    message = "Lucky Strike!",
+                    Xmult_mod = 3,
+                    colour = G.C.GREEN
+                }
+            end
+        end
+    end
+}
+
+-- Shizi 
+SMODS.Atlas{
+    key = 'shizi',
+    path = 'goolatro_shizi.png',
+    px = 71,
+    py = 96
+}
+
+
+function shiziExists()
+    if not G.jokers or not G.jokers.cards then return false end
+    for i = 1, #G.jokers.cards do
+        if G.jokers.cards[i].ability.name == 'j_goolatro_shizi' then
+            return G.jokers.cards[i]
+        end
+    end
+    return false
+end
+
+
+function stopAllMusic()
+    if G.SOUND_MANAGER and G.SOUND_MANAGER.channel then
+        G.SOUND_MANAGER.channel:stop()
+    end
+end
+
+
+SMODS.Sound({
+    key = "music_goolatro_main1", 
+    path = "music_goolatro_changed_main1.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and not (G.GAME.blind and G.GAME.blind.boss) and G.STATE ~= G.STATES.SHOP then
+            if not G.goolatro_music_selected then
+                G.goolatro_music_selected = math.random(1, 5)
+            end
+            return G.goolatro_music_selected == 1
+        end
+        return false
+    end,
+})
+
+SMODS.Sound({
+    key = "music_goolatro_main2", 
+    path = "music_goolatro_changed_main2.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and not (G.GAME.blind and G.GAME.blind.boss) and G.STATE ~= G.STATES.SHOP then
+            if not G.goolatro_music_selected then
+                G.goolatro_music_selected = math.random(1, 5)
+            end
+            return G.goolatro_music_selected == 2
+        end
+        return false
+    end,
+})
+
+SMODS.Sound({
+    key = "music_goolatro_main3", 
+    path = "music_goolatro_changed_main3.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and not (G.GAME.blind and G.GAME.blind.boss) and G.STATE ~= G.STATES.SHOP then
+            if not G.goolatro_music_selected then
+                G.goolatro_music_selected = math.random(1, 5)
+            end
+            return G.goolatro_music_selected == 3
+        end
+        return false
+    end,
+})
+
+SMODS.Sound({
+    key = "music_goolatro_main4", 
+    path = "music_goolatro_changed_main4.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and not (G.GAME.blind and G.GAME.blind.boss) and G.STATE ~= G.STATES.SHOP then
+            if not G.goolatro_music_selected then
+                G.goolatro_music_selected = math.random(1, 5)
+            end
+            return G.goolatro_music_selected == 4
+        end
+        return false
+    end,
+})
+
+SMODS.Sound({
+    key = "music_goolatro_main5", 
+    path = "music_goolatro_changed_main5.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and not (G.GAME.blind and G.GAME.blind.boss) and G.STATE ~= G.STATES.SHOP then
+            if not G.goolatro_music_selected then
+                G.goolatro_music_selected = math.random(1, 5)
+            end
+            return G.goolatro_music_selected == 5
+        end
+        return false
+    end,
+})
+
+-- Boss tracks
+SMODS.Sound({
+    key = "music_goolatro_boss1", 
+    path = "music_goolatro_changed_boss1.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and G.GAME.blind and G.GAME.blind.boss then
+            if not G.goolatro_boss_selected then
+                G.goolatro_boss_selected = math.random(1, 3)
+            end
+            return G.goolatro_boss_selected == 1
+        end
+        return false
+    end,
+})
+
+SMODS.Sound({
+    key = "music_goolatro_boss2", 
+    path = "music_goolatro_changed_boss2.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and G.GAME.blind and G.GAME.blind.boss then
+            if not G.goolatro_boss_selected then
+                G.goolatro_boss_selected = math.random(1, 3)
+            end
+            return G.goolatro_boss_selected == 2
+        end
+        return false
+    end,
+})
+
+SMODS.Sound({
+    key = "music_goolatro_boss3", 
+    path = "music_goolatro_changed_boss3.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        if shiziExists() and G.GAME and G.GAME.blind and G.GAME.blind.boss then
+            if not G.goolatro_boss_selected then
+                G.goolatro_boss_selected = math.random(1, 3)
+            end
+            return G.goolatro_boss_selected == 3
+        end
+        return false
+    end,
+})
+
+-- Shop track
+SMODS.Sound({
+    key = "music_goolatro_shop", 
+    path = "music_goolatro_changed_shop.ogg",
+    pitch = 1,
+    volume = 0.6,
+    select_music_track = function()
+        return shiziExists() and G.STATE == G.STATES.SHOP
+    end,
+})
+
+SMODS.Joker{
+    key = 'shizi',
+    loc_txt = {
+        name = "Shizi",
+        text = {
+            "Replaces {C:attention}all game music{}",
+            "with OST from {C:dark_edition}Changed{}",
+            '{C:inactive}"♪ Transfurred ambience ♪"'
         }
     },
-
-    loc_vars = function(self, info_queue, card)
-        local x = card.ability.extra.current_xmult or 1.5
-        local c = card.ability.extra.chip_bonus or 0
-        return { vars = { string.format("%.2f", x), c } }
+    atlas = 'shizi',
+    rarity = 1,
+    cost = 3,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    pools = { ["Default"] = true },
+    pos = { x = 0, y = 0 },
+    config = {},
+    
+    add_to_deck = function(self, card, from_debuff)
+        card_eval_status_text(card, 'extra', nil, nil, nil, {
+            message = "♪ Changed OST ♪",
+            colour = G.C.PURPLE
+        })
     end,
-
+    
     calculate = function(self, card, context)
-        local extra = card.ability.extra
-        extra.current_xmult = extra.current_xmult or 1.5
-        extra.chip_bonus = extra.chip_bonus or 0
-
-        -- 📈 Уничтожение карт
-        if context.remove_playing_cards and context.removed then
-            for _, c in ipairs(context.removed) do
-                extra.current_xmult = extra.current_xmult + 0.25
-                return {
-                    message = "Sacrificed!",
-                    colour = G.C.MULT
-                }
+        
+        if context.setting_blind and not context.blueprint then
+            if G.GAME.blind and G.GAME.blind.boss then
+                G.goolatro_boss_selected = math.random(1, 3)
+            else
+                G.goolatro_music_selected = math.random(1, 5)
             end
+            G.goolatro_boss_selected = nil
         end
-
-        -- 💰 Сброс карты
-        if context.full_hand and context.discard then
-            for _, c in ipairs(context.full_hand) do
-                extra.chip_bonus = extra.chip_bonus + 5
-                return {
-                    message = "Scrapped!",
-                    colour = G.C.CHIPS
-                }
-            end
+        
+        
+        if context.end_of_round and not context.blueprint then
+            G.goolatro_music_selected = nil
+            G.goolatro_boss_selected = nil
         end
+    end,
+}
 
-        -- 💀 Реинкарнация при продаже
-        if context.selling_self then
-            print("[BONDREWD] Reincarnation triggered")
 
-            local candidates = {}
-            for _, j in ipairs(G.jokers.cards) do
-                if j ~= card and not j.deleting and not j.getting_sliced then
-                    table.insert(candidates, j)
-                end
-            end
+-- Savepoint 
+SMODS.Atlas{
+    key = 'savepoint',
+    path = 'goolatro_savepoint.png',
+    px = 71,
+    py = 96
+}
 
-            if #candidates > 0 then
-                local victim = pseudorandom_element(candidates)
-                local index = nil
-                for i, j in ipairs(G.jokers.cards) do
-                    if j == victim then index = i break end
-                end
-
-                if index then
-                    -- Сообщение и растворение жертвы
-                    
-                    victim.getting_sliced = true
-                    victim:start_dissolve()
-
-                    -- Через 0.3 секунды — удалить и вставить нового Бондрюда
+SMODS.Joker{
+    key = 'savepoint',
+    loc_txt = {
+        name = "Savepoint",
+        text = {
+            "If last hand doesn't reach",
+            "required {C:chips}Chips{},",
+            "automatically {C:attention}adds missing amount{}",
+            "{C:red}Destroys{} after use",
+            '{C:inactive}"Point of no return"'
+        }
+    },
+    atlas = 'savepoint',
+    rarity = 4,
+    cost = 20,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = false,
+    perishable_compat = false,
+    pools = { ["Default"] = true },
+    pos = { x = 0, y = 0 },
+    config = { extra = { does_not_occupy_slot = true } },
+    
+    add_to_deck = function(self, card, from_debuff)
+        if G.jokers then
+            G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+        end
+    end,
+    
+    remove_from_deck = function(self, card, from_debuff)
+        if G.jokers then
+            G.jokers.config.card_limit = G.jokers.config.card_limit - 1
+        end
+    end,
+    
+    calculate = function(self, card, context)
+       
+        if context.joker_main and not context.blueprint then
+            
+            if G.GAME.current_round.hands_left == 0 then
+                
+                local chips_needed = G.GAME.blind.chips - hand_chips
+                
+                if chips_needed > 0 then
                     G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.3,
                         func = function()
-                            G.jokers:remove_card(victim)
-
-                            local card = create_card('j_bondrewd', G.jokers, nil, nil, nil, nil, 'j_bondrewd', 'goolatro')
-                            card:add_to_deck()
-                            G.jokers:emplace(card)
-
-
-                            if clone then
-                                clone.ability.extra = {
-                                    current_xmult = math.floor(extra.current_xmult * 0.5 * 100) / 100,
-                                    chip_bonus = math.floor(extra.chip_bonus * 0.5)
-                                }
-                                table.insert(G.jokers.cards, index, clone)
-                                play_sound('tarot1', 1.1)
-                                clone:juice_up()
-                                
-
-                            else
-                                print("[BONDREWD] Failed to create clone")
-                            end
+                            card:start_dissolve()
                             return true
                         end
                     }))
+                    
+                    return {
+                        message = "SAVED!",
+                        chip_mod = chips_needed,
+                        colour = G.C.CHIPS
+                    }
                 end
             end
         end
+    end
+}
 
-        -- 🎁 Подсчет бонусов
-        if context.after and context.joker_main then
+-- DragonSnow
+SMODS.Atlas{
+    key = 'dragonsnow',
+    path = 'goolatro_dragonsnow.png',
+    px = 71,
+    py = 96
+}
+
+SMODS.Joker{
+    key = 'dragonsnow',
+    loc_txt = {
+        name = "DragonSnow",
+        text = {
+            "When playing hand,",
+            "{C:attention}evolves{} random card",
+            "to next rank or better suit",
+            "{C:inactive}(Ignores Aces and Latex)"
+        }
+    },
+    atlas = 'dragonsnow',
+    rarity = 2,
+    cost = 5,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    pools = { ["Default"] = true },
+    pos = { x = 0, y = 0 },
+    config = {},
+}
+
+
+function dragonsnowExists()
+    if not G.jokers or not G.jokers.cards then return false end
+    for i = 1, #G.jokers.cards do
+        if G.jokers.cards[i].ability.name == 'j_goolatro_dragonsnow' then
+            return true
+        end
+    end
+    return false
+end
+
+-- Хук на кнопку Play Hand
+local original_play_cards = G.FUNCS.play_cards_from_highlighted
+G.FUNCS.play_cards_from_highlighted = function(e)
+    if dragonsnowExists() and G.hand and G.hand.highlighted and #G.hand.highlighted > 0 then
+        -- Фильтруем карты: исключаем Latex
+        local valid_targets = {}
+        for _, c in ipairs(G.hand.highlighted) do
+            if c.seal ~= 'goolatro_latex' then  -- ← ИГНОРИРУЕМ LATEX
+                table.insert(valid_targets, c)
+            end
+        end
+        
+        if #valid_targets > 0 then
+            local target = pseudorandom_element(valid_targets, pseudoseed('dragonsnow'))
+            local old_id = target.base.id
+            local old_suit = target.base.suit
+            
+            -- Префикс масти
+            local suit_map = {Spades = 'S', Hearts = 'H', Diamonds = 'D', Clubs = 'C'}
+            local old_suit_prefix = suit_map[old_suit]
+            
+            local new_id, new_suit_prefix
+            
+            if old_id == 14 then
+                -- Туз - меняем масть
+                new_id = 14
+                local suit_counts = {S = 0, H = 0, D = 0, C = 0}
+                for _, c in ipairs(G.hand.highlighted) do
+                    local s = suit_map[c.base.suit]
+                    suit_counts[s] = (suit_counts[s] or 0) + 1
+                end
+                
+                local best_suit = old_suit_prefix
+                local best_count = 0
+                for suit, count in pairs(suit_counts) do
+                    if suit ~= old_suit_prefix and count > best_count then
+                        best_suit = suit
+                        best_count = count
+                    end
+                end
+                new_suit_prefix = best_count > 0 and best_suit or old_suit_prefix
+            else
+                -- Не туз
+                if pseudorandom('dragonsnow_choice') < 0.5 then
+                    new_id = old_id + 1
+                    if new_id > 14 then new_id = 2 end
+                    new_suit_prefix = old_suit_prefix
+                else
+                    new_id = old_id
+                    local suit_counts = {S = 0, H = 0, D = 0, C = 0}
+                    for _, c in ipairs(G.hand.highlighted) do
+                        local s = suit_map[c.base.suit]
+                        suit_counts[s] = (suit_counts[s] or 0) + 1
+                    end
+                    
+                    local best_suit = old_suit_prefix
+                    local best_count = 0
+                    for suit, count in pairs(suit_counts) do
+                        if suit ~= old_suit_prefix and count > best_count then
+                            best_suit = suit
+                            best_count = count
+                        end
+                    end
+                    new_suit_prefix = best_count > 0 and best_suit or old_suit_prefix
+                end
+            end
+            
+            
+            local rank_suffix = new_id < 10 and tostring(new_id) or
+                               new_id == 10 and 'T' or
+                               new_id == 11 and 'J' or
+                               new_id == 12 and 'Q' or
+                               new_id == 13 and 'K' or
+                               new_id == 14 and 'A'
+            
+            local new_card_key = new_suit_prefix .. '_' .. rank_suffix
+            
+            
+            G.E_MANAGER:add_event(Event({
+                trigger = 'before',
+                delay = 0.1,
+                func = function()
+                    target:flip()
+                    play_sound('card1')
+                    return true
+                end
+            }))
+            
+            G.E_MANAGER:add_event(Event({
+                func = function()
+                    target:set_base(G.P_CARDS[new_card_key])
+                    play_sound('tarot2')
+                    return true
+                end
+            }))
+            
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.1,
+                func = function()
+                    target:flip()
+                    target:juice_up(0.5, 0.5)
+                    return true
+                end
+            }))
+        end
+    end
+    
+    return original_play_cards(e)
+end
+
+-- Nella
+SMODS.Atlas{
+    key = 'nella',
+    path = 'goolatro_nella.png',
+    px = 71,
+    py = 96
+}
+
+SMODS.Joker{
+    key = 'nella',
+    loc_txt = {
+        name = "Nella",
+        text = {
+            "Gains {X:mult,C:white}X0.2{} Mult whenever",
+            "any card gains a {C:attention}seal{}, {C:attention}edition{},",
+            "or {C:attention}enhancement{}",
+            "{C:inactive}(Currently {X:mult,C:white}X#1#{C:inactive} Mult)"
+        }
+    },
+    atlas = 'nella',
+    rarity = 2,
+    cost = 6,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = true,
+    eternal_compat = true,
+    perishable_compat = true,
+    pools = { ["Default"] = true },
+    pos = { x = 0, y = 0 },
+    config = { extra = { Xmult = 1.0, gain = 0.2 } },
+    
+    loc_vars = function(self, info_queue, center)
+        return { vars = { center.ability.extra.Xmult } }
+    end,
+    
+    calculate = function(self, card, context)
+        if context.joker_main then
             return {
-                Xmult_mod = extra.current_xmult,
-                chip_mod = extra.chip_bonus,
-                message = "x" .. string.format("%.2f", extra.current_xmult) ..
-                          ", +" .. tostring(extra.chip_bonus) .. " chips",
-                colour = G.C.MULT
+                message = localize({ type = "variable", key = "a_xmult", vars = { card.ability.extra.Xmult } }),
+                Xmult_mod = card.ability.extra.Xmult
             }
         end
     end
 }
+
+
+local function nellaGainMult()
+    if not G.jokers then return end
+    for i = 1, #G.jokers.cards do
+        if G.jokers.cards[i].ability.name == 'j_goolatro_nella' then
+            local nella = G.jokers.cards[i]
+            nella.ability.extra.Xmult = nella.ability.extra.Xmult + nella.ability.extra.gain
+            
+            card_eval_status_text(nella, 'extra', nil, nil, nil, {
+                message = "+X" .. nella.ability.extra.gain,
+                colour = G.C.MULT
+            })
+            return true
+        end
+    end
+    return false
+end
+
+
+local original_set_seal = Card.set_seal
+function Card:set_seal(seal, silent, final)
+    local result = original_set_seal(self, seal, silent, final)
+    
+    
+    if self.playing_card and seal and not silent then
+        nellaGainMult()
+    end
+    
+    return result
+end
+
+-- Хук на set_ability 
+local original_set_ability = Card.set_ability
+function Card:set_ability(center, initial, delay_sprites)
+    local had_ability = self.ability and self.ability.name
+    local result = original_set_ability(self, center, initial, delay_sprites)
+    
+    
+    if self.playing_card and not initial and center and center.name and center.name ~= 'Default Base' and had_ability ~= center.name then
+        nellaGainMult()
+    end
+    
+    return result
+end
+
+-- Хук на set_edition 
+local original_set_edition = Card.set_edition
+function Card:set_edition(edition, immediate, silent)
+    local result = original_set_edition(self, edition, immediate, silent)
+    
+    
+    if self.playing_card and edition and not silent then
+        nellaGainMult()
+    end
+    
+    return result
+end
+
+-- HELL NAW 
+SMODS.Atlas{
+    key = 'hellnaw',
+    path = 'goolatro_hellnaw.png',
+    px = 71,
+    py = 96
+}
+
+SMODS.Sound{
+    key = "goolatro_hellnaw",
+    path = "HELLNAW.ogg"
+}
+
+SMODS.Joker{
+    key = 'hellnaw',
+    loc_txt = {
+        name = "HELL NAW",
+        text = {
+            "{C:attention}Disables{} Boss Blind condition",
+            "Becomes {C:inactive}inactive{} after use",
+            "Reactivates when you {C:attention}sell{} a Joker",
+            '{C:inactive}"Don\'t say she ain\'t eat a treat"'
+        }
+    },
+    atlas = 'hellnaw',
+    rarity = 4,
+    cost = 20,
+    unlocked = true,
+    discovered = true,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    pools = { ["Default"] = true },
+    pos = { x = 0, y = 0 },
+    config = { extra = { active = true } },
+    
+    calculate = function(self, card, context)
+        if context.setting_blind and not context.retrigger_joker then
+            if card.ability.extra.active and G.GAME.blind and G.GAME.blind.boss then
+                
+                play_sound('goolatro_hellnaw')
+                
+                
+                G.GAME.blind:disable()
+                
+                
+                if G.GAME.blind.loc_debuff_lines then
+                    G.GAME.blind.loc_debuff_lines = {"HELL NAW"}
+                end
+                
+                
+                SMODS.juice_up_blind()
+                
+                
+                card.ability.extra.active = false
+                card:juice_up(0.8, 0.8)
+                
+                return {
+                    message = "HELL NAW!",
+                    colour = G.C.RED
+                }
+            end
+        end
+    end,
+    
+    add_to_deck = function(self, card, from_debuff)
+        card.ability.extra.active = true
+    end
+}
+
+
+local original_sell_card = Card.sell_card
+function Card:sell_card()
+    local is_joker = self.ability and self.ability.set == 'Joker'
+    local result = original_sell_card(self)
+    
+    if is_joker and G.jokers then
+        for i = 1, #G.jokers.cards do
+            if G.jokers.cards[i].ability.name == 'j_goolatro_hellnaw' then
+                local hellnaw = G.jokers.cards[i]
+                if not hellnaw.ability.extra.active then
+                    hellnaw.ability.extra.active = true
+                    hellnaw:juice_up(0.5, 0.5)
+                    play_sound('generic1')
+                    
+                    card_eval_status_text(hellnaw, 'extra', nil, nil, nil, {
+                        message = "Reactivated!",
+                        colour = G.C.GREEN
+                    })
+                end
+            end
+        end
+    end
+    
+    return result
+end
